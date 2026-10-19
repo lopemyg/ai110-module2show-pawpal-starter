@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Implementation summary
+
+PawPal+ keeps care data on three dataclasses and plans the day with one scheduler.
+
+- **Task** is one activity: a description, a clock time, a duration, a priority, a category, a frequency (`once`, `daily`, or `weekly`), and a completed flag. `mark_complete()` flips that flag.
+- **Pet** stores a name, a species, and its own task list.
+- **Owner** stores the time budget and preferences, and holds every pet. `get_all_tasks()` is the only method that gathers tasks from all pets into one list.
+- **Scheduler** never reads a single pet on its own. `generate_plan(owner)` calls `owner.get_all_tasks()`, skips finished tasks, and keeps tasks that fit the minute budget without overlapping a higher-ranked task. Ranking uses priority, then a preference match, then start time. The printed plan is sorted by time. `explain(owner, plan)` states why each task was scheduled or skipped.
+
+Run `python main.py` to see a two-pet day. Run `python -m pytest` for the completion and task-count checks.
+
 ## Getting started
 
 ### Setup
@@ -44,14 +55,24 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Output from `python main.py`:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+Today's Schedule for Jordan
+Time available: 40 minutes
+
+Time    Pet         Task                  Min  Priority  Frequency
+----------------------------------------------------------------
+07:30   Mochi       Breakfast              10  high      daily
+08:00   Mochi       Morning walk           25  high      daily
+16:00   Biscuit     Playtime                5  medium    daily
+
+Why this plan:
+  Used 40 of 40 minutes across 2 pets.
+  07:30 Breakfast (Mochi): scheduled because it is high priority.
+  08:00 Morning walk (Mochi): scheduled because it is high priority and matches a preference.
+  16:00 Playtime (Biscuit): scheduled because it is medium priority.
+  08:10 Ear medication (Biscuit): skipped because it overlaps a higher-ranked task.
 ```
 
 ## 🧪 Testing PawPal+
@@ -64,10 +85,12 @@ pytest
 pytest --cov
 ```
 
-Sample test output:
+Sample test output from `python -m pytest`:
 
 ```
-# Paste your pytest output here
+tests/test_pawpal.py ..                                                  [100%]
+
+============================== 2 passed in 0.02s ===============================
 ```
 
 ## 📐 Smarter Scheduling
@@ -76,10 +99,10 @@ Sample test output:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.generate_plan` | Chooses by priority, then preference match, then start time. The printed plan is ordered by time. |
+| Filtering | `Scheduler.generate_plan` | Skips completed tasks and any task that does not fit the remaining minutes. |
+| Conflict handling | `Scheduler.generate_plan` | Skips a task whose start time and duration overlap a task already chosen. |
+| Recurring tasks | `Task.frequency` | Stores `once`, `daily`, or `weekly`. The plan does not yet create the next occurrence. |
 
 ## 📸 Demo Walkthrough
 

@@ -20,11 +20,16 @@ classDiagram
     }
 
     class Task {
-        +str title
+        +str description
+        +str time
+        +str frequency
         +int duration_minutes
         +str priority
         +str category
         +str pet_name
+        +bool completed
+        +mark_complete() void
+        +mark_incomplete() void
     }
 
     class Scheduler {
@@ -34,5 +39,5 @@ classDiagram
 
     Owner "1" --> "*" Pet : has
     Pet "1" --> "*" Task : has
-    Scheduler ..> Owner : uses time and preferences
+    Scheduler ..> Owner : reads get_all_tasks
     Scheduler ..> Task : chooses and orders
