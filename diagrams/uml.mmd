@@ -1,6 +1,8 @@
 classDiagram
-    %% PawPal+ draft. Four classes only. Update this file in Phase 6
-    %% so it matches the implementation.
+    %% Final PawPal+ diagram. Matches pawpal_system.py.
+    %% The Scheduler stores no pets or tasks. It reads the Owner
+    %% and, when a recurring task is completed, appends the next
+    %% occurrence to that pet.
 
     class Owner {
         +str name
@@ -45,4 +47,5 @@ classDiagram
     Owner "1" --> "*" Pet : has
     Pet "1" --> "*" Task : has
     Scheduler ..> Owner : reads get_all_tasks
-    Scheduler ..> Task : chooses and orders
+    Scheduler ..> Pet : appends the next occurrence
+    Scheduler ..> Task : sorts, filters, and schedules

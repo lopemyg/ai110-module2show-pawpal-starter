@@ -144,7 +144,7 @@ class Scheduler:
         if days is None:
             return None
 
-        start = task.due_date or today or date.today()
+        start = getattr(task, "due_date", None) or today or date.today()
         next_task = replace(
             task,
             completed=False,

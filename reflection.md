@@ -36,6 +36,10 @@ While implementing the scheduler, Task also gained a clock `time`, a `frequency`
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+`generate_plan` considers four constraints. The minute budget comes first: a task is skipped when it does not fit the time still left. Priority comes next, with high before medium before low. A preference match, such as the word "walk" in the category or description, breaks a tie between equal priorities. Start time is the last tiebreak, and the printed plan is sorted by time after the choices are made.
+
+The budget mattered most because a busy owner cannot do every task. Priority mattered next so a walk or medication beats optional grooming. Preferences are a nudge, not a rule, because a preferred low-priority task should not push out a high-priority one.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
@@ -54,16 +58,18 @@ That tradeoff fits this app. The owner needs a plain alert when two jobs are boo
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
-I used the assistant to turn the UML into class skeletons, then to fill in the four classes, a terminal demo, and two tests. The most useful prompts were specific ones: which fields each class owns, and how the Scheduler should get tasks. The useful answer was to call `Owner.get_all_tasks()` and let that method walk every pet. A second prompt asked for a readable terminal schedule, which became aligned columns instead of printing Task objects.
+I used the assistant in separate phases: a class diagram, skeletons, the four classes, the scheduling methods, the tests, and then the Streamlit page. The most effective help was agent editing across `pawpal_system.py`, `main.py`, and `tests/test_pawpal.py` together, plus narrow questions such as how the Scheduler should get every pet's tasks, how a lambda sorts `"HH:MM"`, and how `timedelta` makes tomorrow. Those prompts stayed on one decision.
+
+Keeping each phase in its own chat helped. The design chat did not get mixed with test failures, and the test chat did not rewrite the UI. I could check one claim at a time: first that `get_all_tasks()` gathers every pet, then that sorting and conflicts print from `main.py`, then that `pytest` stays green.
 
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
 
-I did not replace the scheduling fields when completion, clock time, and frequency were added. Dropping `duration_minutes` and `priority` would have left the Scheduler unable to fit a time budget. I also did not let the Scheduler loop over one pet's tasks. It calls `owner.get_all_tasks()`, and the Owner is the only place that gathers tasks from every pet.
+I did not sort times with `key=lambda task: task.time`. That version is shorter, but the string `"10:00"` sorts before `"9:00"`. I kept `key=lambda task: _clock_minutes(task.time)` so an unpadded hour still lands in clock order. I also kept `duration_minutes` and `priority` when completion and frequency were added, and I did not let the Scheduler read a single pet. It calls `owner.get_all_tasks()`.
 
-I checked that choice by running `python main.py`. The printed plan includes Mochi and Biscuit, lists different times, and says why the overlapping medication was skipped. I then ran `python -m pytest`. Both tests passed: `mark_complete()` flips `completed`, and adding a task increases that pet's task count.
+I checked the sort with a test that starts from `16:00`, `07:30`, and `9:00` and expects `07:30`, `9:00`, `16:00`. I checked the multi-pet path by running `python main.py`: the plan includes Mochi and Biscuit and explains the skipped 08:00 medication. `python -m pytest` then passed the full suite.
 
 ---
 
@@ -74,10 +80,16 @@ I checked that choice by running `python main.py`. The printed plan includes Moc
 - What behaviors did you test?
 - Why were these tests important?
 
+I tested marking a task complete, adding a task to a pet, chronological sorting, a daily task that creates tomorrow's copy, a one-time task that does not recur, a warning for two tasks at the same clock time, a pet with no tasks, and a plan that keeps both pets in time order.
+
+Those checks matter because they are the behaviors an owner relies on. A wrong sort hides the morning feeding. A missing recurrence drops a daily medication. A silent conflict double-books 08:00. An empty pet must not crash the plan.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I would give the scheduler 4 out of 5. The eight tests passed, and `main.py` shows the same sorting, conflict, and recurrence behavior. I would next test a weekly task due seven days later, a duration overlap that starts at a different minute, and the Streamlit clicks for filter, warning, and mark complete.
 
 ---
 
@@ -87,10 +99,16 @@ I checked that choice by running `python main.py`. The printed plan includes Moc
 
 - What part of this project are you most satisfied with?
 
+I am most satisfied that one Owner method, `get_all_tasks()`, is the only door into every pet. The Scheduler can sort, filter, warn, and plan without reaching into a single pet's list. That kept the four-class design small while the algorithms grew.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+I would make the conflict warning mention duration overlaps, not only an exact clock time. A walk from 08:00 to 08:25 and medication at 08:10 should be visible in the same warning the owner sees. I would also let the page edit a task instead of only adding and completing one.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+The useful role is lead architect, not typist. The assistant drafted classes, tests, and UI quickly, but I had to decide the boundaries: four classes, the Owner owns the pet list, and a warning must not crash the plan. Separate chats kept each phase checkable. I trusted a suggestion only after `main.py` or `pytest` showed it.
