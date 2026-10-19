@@ -41,6 +41,10 @@ While implementing the scheduler, Task also gained a clock `time`, a `frequency`
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+`detect_conflicts` compares the clock time only. A walk at 08:00 and medication at 08:00 produce a warning, even when they belong to different pets. A task at 08:10 that runs during the walk does not, because the time strings are not equal.
+
+That tradeoff fits this app. The owner needs a plain alert when two jobs are booked for the same minute, and an exact match is easy to read. Checking every overlapping minute would catch more clashes, but it is harder to follow. The plan builder already skips duration overlaps when it chooses the day, so the warning can stay a notice instead of stopping the program.
+
 ---
 
 ## 3. AI Collaboration

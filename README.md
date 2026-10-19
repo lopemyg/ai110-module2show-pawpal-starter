@@ -58,6 +58,25 @@ pip install -r requirements.txt
 Output from `python main.py`:
 
 ```
+Entered order:
+  16:00  Biscuit    Playtime           open  due today
+  07:30  Mochi      Breakfast          open  due today
+  08:00  Mochi      Morning walk       open  due today
+  08:00  Biscuit    Ear medication     open  due today
+
+Sorted by time:
+  07:30  Mochi      Breakfast          open  due today
+  08:00  Mochi      Morning walk       open  due today
+  08:00  Biscuit    Ear medication     open  due today
+  16:00  Biscuit    Playtime           open  due today
+
+Open tasks for Mochi:
+  07:30  Mochi      Breakfast          open  due today
+  08:00  Mochi      Morning walk       open  due today
+
+Conflict warnings:
+  Conflict at 08:00: Morning walk (Mochi) and Ear medication (Biscuit) are scheduled at the same time.
+
 Today's Schedule for Jordan
 Time available: 40 minutes
 
@@ -72,7 +91,11 @@ Why this plan:
   07:30 Breakfast (Mochi): scheduled because it is high priority.
   08:00 Morning walk (Mochi): scheduled because it is high priority and matches a preference.
   16:00 Playtime (Biscuit): scheduled because it is medium priority.
-  08:10 Ear medication (Biscuit): skipped because it overlaps a higher-ranked task.
+  08:00 Ear medication (Biscuit): skipped because it overlaps a higher-ranked task.
+
+After marking Breakfast complete:
+  07:30  Mochi      Breakfast          done  due today
+  Next daily occurrence:  07:30  Mochi      Breakfast          open  due 2026-10-19
 ```
 
 ## 🧪 Testing PawPal+
@@ -99,10 +122,10 @@ tests/test_pawpal.py ..                                                  [100%]
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | `Scheduler.generate_plan` | Chooses by priority, then preference match, then start time. The printed plan is ordered by time. |
-| Filtering | `Scheduler.generate_plan` | Skips completed tasks and any task that does not fit the remaining minutes. |
-| Conflict handling | `Scheduler.generate_plan` | Skips a task whose start time and duration overlap a task already chosen. |
-| Recurring tasks | `Task.frequency` | Stores `once`, `daily`, or `weekly`. The plan does not yet create the next occurrence. |
+| Task sorting | `Scheduler.sort_by_time()` | `sorted()` with `key=lambda task: _clock_minutes(task.time)` orders zero-padded or unpadded `HH:MM` strings from earliest to latest. `generate_plan` uses this for the printed day. |
+| Filtering | `Scheduler.filter_tasks()` | Keeps tasks for one pet name, one completion status, or both. `generate_plan` uses it to drop completed tasks before ranking. |
+| Conflict handling | `Scheduler.detect_conflicts()` | Returns a warning when two unfinished tasks share the same clock time, including across pets. It does not raise. Duration overlap is still skipped inside `generate_plan`. |
+| Recurring tasks | `Scheduler.mark_task_complete()` | Marks the task done. A daily task gets a new open copy due tomorrow (`timedelta(days=1)`). A weekly task is due in 7 days. A one-time task is not copied. |
 
 ## 📸 Demo Walkthrough
 

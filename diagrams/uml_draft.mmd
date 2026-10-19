@@ -28,11 +28,16 @@ classDiagram
         +str category
         +str pet_name
         +bool completed
+        +date due_date
         +mark_complete() void
         +mark_incomplete() void
     }
 
     class Scheduler {
+        +sort_by_time(tasks) list~Task~
+        +filter_tasks(tasks, pet_name, completed) list~Task~
+        +detect_conflicts(tasks) list~str~
+        +mark_task_complete(owner, task) Task
         +generate_plan(owner) list~Task~
         +explain(owner, plan) list~str~
     }
