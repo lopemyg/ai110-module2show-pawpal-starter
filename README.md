@@ -98,22 +98,27 @@ After marking Breakfast complete:
   Next daily occurrence:  07:30  Mochi      Breakfast          open  due 2026-10-19
 ```
 
-## 🧪 Testing PawPal+
+## Testing PawPal+
+
+Run the suite from the project root:
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output from `python -m pytest`:
+The tests cover marking a task complete, adding a task to a pet, chronological sorting (including an unpadded hour), a daily task that creates tomorrow's copy, a one-time task that does not recur, a warning when two tasks share a clock time, a pet with no tasks, and a plan that keeps both pets in time order.
+
+**Confidence level: ★★★★☆ (4/5).** Those paths passed. The suite does not yet check a weekly recurrence or a duration overlap that starts at a different minute, so those stay outside this score.
 
 ```
-tests/test_pawpal.py ..                                                  [100%]
+============================= test session starts ==============================
+platform darwin -- Python 3.13.0, pytest-8.3.3, pluggy-1.6.0
+rootdir: /Users/agustinlopez/ai110-module2show-pawpal-starter
+collected 8 items
 
-============================== 2 passed in 0.02s ===============================
+tests/test_pawpal.py ........                                            [100%]
+
+============================== 8 passed in 0.02s ===============================
 ```
 
 ## 📐 Smarter Scheduling
