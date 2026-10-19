@@ -1,0 +1,38 @@
+classDiagram
+    %% PawPal+ draft. Four classes only. Update this file in Phase 6
+    %% so it matches the implementation.
+
+    class Owner {
+        +str name
+        +int available_minutes
+        +list~str~ preferences
+        +list~Pet~ pets
+        +add_pet(pet) void
+        +get_all_tasks() list~Task~
+    }
+
+    class Pet {
+        +str name
+        +str species
+        +list~Task~ tasks
+        +add_task(task) void
+        +get_tasks() list~Task~
+    }
+
+    class Task {
+        +str title
+        +int duration_minutes
+        +str priority
+        +str category
+        +str pet_name
+    }
+
+    class Scheduler {
+        +generate_plan(owner) list~Task~
+        +explain(owner, plan) list~str~
+    }
+
+    Owner "1" --> "*" Pet : has
+    Pet "1" --> "*" Task : has
+    Scheduler ..> Owner : uses time and preferences
+    Scheduler ..> Task : chooses and orders
